@@ -5,14 +5,34 @@ import Joi from 'joi';
 const {ObjectId} = mongoose.Types;
 
 //id 확인하는 미들웨어. posts/index.js에서 미들웨어 추가해서 사용
-export const checkObjectId = (ctx, next) => {
+export const getPostById = async (ctx, next) => {
     const {id} = ctx.params;
     if (!ObjectId.isValid(id)) {
         ctx.status = 400;
         return;
     }
+    try {
+        const post = await Post.findById(id);
+        if (!post) {
+            ctx.status = 404;
+            return;
+        }
+        ctx.state.post = post;
+        return next();
+    } catch(e) {
+        ctx.throw(500,e);
+    }
+}
+
+export const checkOwnPost = (ctx, next) => {
+    const {user, post} = ctx.state;
+    if (post.user._id.toString() !== user._id) {
+        ctx.status = 403;
+        return;
+    }
     return next();
 }
+
 
 export const write = async ctx => {
     const schema = Joi.object().keys({
@@ -21,13 +41,13 @@ export const write = async ctx => {
         body: Joi.string().required(),
         tags: Joi.array().items(Joi.string()).required(),
     })
-    const result = Joi.validate(ctx.request.body, schema);
+    const result = schema.validate(ctx.request.body);
     if (result.error) {
         ctx.status = 400;
         ctx.body = result.error
     }
     const {title,body, tags} = ctx.request.body;
-    const post = new Post({title, body, tags});
+    const post = new Post({title, body, tags, user: ctx.state.user});
     try {
         await post.save();
         ctx.body = post;
@@ -43,12 +63,18 @@ export const list = async ctx => {
         ctx.status = 400;
         return;
     }
+    const {tag, username} = ctx.query;
+    //tag, username 값이 유효하면 객체 안에 넣고, 그렇지 않으면 넣지 않음
+    const query = {
+        ...(username ? {'user.username': username}: {}),
+        ...(tag ? {tags: tag}: {}),
+    }
     try {
         //find 함수는 조회. exec()을 붙여줘야 서버에 쿼리를 요청함
         //역순으로 표시하기 위해 sort해줌
         //limit으로 개수 제한
-        const posts = await Post.find().sort({_id: -1}).limit(10).skip((page-1)*10).exec();
-        const postCount = await Post.countDocuments().exec();
+        const posts = await Post.find(query).sort({_id: -1}).limit(10).skip((page-1)*10).exec();
+        const postCount = await Post.countDocuments(query).exec();
         //커스텀 헤더 설정
         ctx.set('Last-Page', Math.ceil(postCount/10));
 
@@ -64,17 +90,7 @@ export const list = async ctx => {
 }
 
 export const read = async ctx => {
-    const id = ctx.params;
-    try {
-        const post = await Post.findById(id).exec();
-        if (!post) {
-            ctx.status = 404;
-            return;
-        }
-        ctx.body = post;
-    } catch(e) {
-        ctx.throw(500,e);
-    }
+    ctx.body = ctx.state.post;
 }
 
 export const remove = async ctx => {
@@ -96,7 +112,7 @@ export const update = async ctx => {
         body: Joi.string(),
         tags: Joi.array().items(Joi.string()),
     })
-    const result = Joi.validate(ctx.request.body, schema);
+    const result = schema.validate(ctx.request.body);
     if (result.error) {
         ctx.status = 400;
         ctx.body = result.error
