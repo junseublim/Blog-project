@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "dotenv": "^8.2.0",
-    "mongoose": "^5.11.13"
+    "mongoose": "^5.11.13",
+    "styled-components": "^5.2.1"
   }
 }
