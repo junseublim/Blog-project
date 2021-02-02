@@ -1,8 +1,9 @@
 import React from 'react';
 import styled, {css}from 'styled-components';
 import palette from '../../lib/styles/palette';
+import {Link} from 'react-router-dom';
 
-const StyledButton = styled.button`
+const buttonStyle = css`
     border: none;
     border-radius: 4px;
     font-size: 1rem;
@@ -30,9 +31,20 @@ const StyledButton = styled.button`
                 background: ${palette.cyan[4]};
             }
     `}
-
-    
 `;
+
+const StyledButton = styled.button`
+    ${buttonStyle}
+`;
+const StyledLink = styled(Link)`
+    ${buttonStyle}`
+
 //그냥 StyledButton 보내도 되지만 렌더링 해준 이유는 추후 이 컴포넌트를 사용할 때 자동 import 되게 하기 위함.
-const Button = props => <StyledButton {...props}/>
+const Button = props => {
+    return props.to ? (
+        <StyledLink {...props} cyan={props.cyan? 1: 0} />
+    ): (
+    <StyledButton {...props}/>
+    )
+}
 export default Button;

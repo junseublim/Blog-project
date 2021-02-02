@@ -1,7 +1,9 @@
 import {createAction, handleActions} from 'redux-actions';
 import produce from 'immer';
-import {createRequestActionTypes, createRequestSaga} from '../lib/createRequestSaga';
+import {createRequestActionTypes}from '../lib/createRequestSaga';
 import * as authAPI from '../lib/api/auth';
+import { takeLatest } from 'redux-saga/effects';
+import createRequestSaga from '../lib/createRequestSaga';
 
 
 const CHANGE_FIELD = 'auth/CHANGE_FIELD';
@@ -58,6 +60,7 @@ const initialState = {
     authError: null
 };
 
+//리듀서
 const auth = handleActions(
     {
         [CHANGE_FIELD]: (state, {payload: {form,key,value}}) => 
