@@ -5,6 +5,7 @@ import Button from '../common/Button';
 const WriteActionButtonsBlock = styled.div`
     margin-top: 1rem;
     margin-bottom: 3rem;
+    /* 버튼 바로 다음에 오는 버튼에다가 */
     button + button {
         margin-left: 0.5rem;
     }
@@ -12,6 +13,7 @@ const WriteActionButtonsBlock = styled.div`
 
 const StyledButton = styled(Button)`
     height: 2.125rem;
+    /* 자기 바로 다음에 오는 자기에다가 */
     & + & {
         margin-left: 0.5rem;
     }
