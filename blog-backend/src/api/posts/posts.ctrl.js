@@ -1,8 +1,22 @@
 import Post from '../../models/posts';
 import mongoose from 'mongoose';
 import Joi from 'joi';
+import sanitizeHtml from 'sanitize-html';
 
 const {ObjectId} = mongoose.Types;
+
+const sanitizeOption = {
+    allowedTags: [
+        'h1','h2','b','i','u','s','p','ul','ol','li','blockquote','a','img'
+    ],
+    allowedAttributes: {
+        a: ['href', 'name', 'target'],
+        img: ['src'],
+        li: ['class']
+    },
+    allowedSchemes: ['data', 'http']
+};
+
 
 //id 확인하는 미들웨어. posts/index.js에서 미들웨어 추가해서 사용
 export const getPostById = async (ctx, next) => {
@@ -25,6 +39,7 @@ export const getPostById = async (ctx, next) => {
 }
 
 export const checkOwnPost = (ctx, next) => {
+    console.log(ctx.state);
     const {user, post} = ctx.state;
     if (post.user._id.toString() !== user._id) {
         ctx.status = 403;
@@ -47,7 +62,7 @@ export const write = async ctx => {
         ctx.body = result.error
     }
     const {title,body, tags} = ctx.request.body;
-    const post = new Post({title, body, tags, user: ctx.state.user});
+    const post = new Post({title, body: sanitizeHtml(body, sanitizeOption), tags, user: ctx.state.user});
     try {
         await post.save();
         ctx.body = post;
@@ -55,6 +70,11 @@ export const write = async ctx => {
     catch (e) {
         ctx.throw(500,e);
     }
+}
+
+const removeHtmlAndShorten = body => {
+    const filtered = sanitizeHtml(body, {allowedTags: [],});
+    return filtered.length< 200 ? filtered : `${filtered.slice(0,200)}...`;
 }
 
 export const list = async ctx => {
@@ -82,7 +102,7 @@ export const list = async ctx => {
         //혹은 데이터를 조회할때 lean 함수를 사용하면 처음부터 JSON형태로 반환한다.
         ctx.body = posts.map(post => post.toJSON()).map(post => ({
             ...post,
-            body: post.body.length < 200 ? post.body : `${post.body.slice(0,200)}...`
+            body: removeHtmlAndShorten(post.body),
         }));
     } catch(e){
         ctx.throw(500,e);
@@ -91,6 +111,7 @@ export const list = async ctx => {
 
 export const read = async ctx => {
     ctx.body = ctx.state.post;
+    console.log(ctx.body);
 }
 
 export const remove = async ctx => {
@@ -117,8 +138,12 @@ export const update = async ctx => {
         ctx.status = 400;
         ctx.body = result.error
     }
+    const nextData = {...ctx.request.body};
+    if (nextData.body) {
+        nextData.body = sanitizeHtml(nextData.body);
+    }
     try {
-        const post = await Post.findByIdAndUpdate(id, ctx.request.body, {
+        const post = await Post.findByIdAndUpdate(id, nextData, {
             new: true, //설정시 업데이트된 데이터 반환. false이면 업데이트 전의 데이터 반환
         }).exec();
         if (!post) {

@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import palette from "../../lib/styles/palette";
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 const TagBoxBlock = styled.div`
     width: 100%;
     border-top: 1px solid ${palette.gray[2]};
@@ -107,6 +107,10 @@ const TagBox = ({tags, onChangeTags}) => {
         },
         [input, insertTag],
     );
+
+    useEffect(() => {
+        setLocalTags(tags);
+    }, [tags]);
 
     return (
         <TagBoxBlock>
