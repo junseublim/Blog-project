@@ -7,7 +7,7 @@ const posts = new Router();
 
 posts.get('/', postsCtrl.list);
 posts.post('/', checkLoggedIn, postsCtrl.write);
-posts.delete('/:id',checkLoggedIn, postsCtrl.checkOwnPost, postsCtrl.remove);
+posts.delete('/:id',checkLoggedIn,postsCtrl.getPostById, postsCtrl.checkOwnPost, postsCtrl.remove);
 posts.get('/:id', postsCtrl.getPostById, postsCtrl.read);
 posts.patch('/:id', checkLoggedIn, postsCtrl.getPostById,postsCtrl.checkOwnPost, postsCtrl.update);
 module.exports = posts;
