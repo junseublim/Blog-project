@@ -19,14 +19,16 @@ $ yarn start
 
 ### 백엔드
 
-- koa
-- koa-bodyparser
-- koa-router
-- koa-static
-- joi
-- jsonwebtoken
-- bcrypt
-- sanitize-html
+- koa : node.js 웹프레임워크
+- koa-bodyparser: request body 내에 json 형식의 데이터를 파싱해주는 라이브러리
+- koa-router: koa에서 라우팅을 돕는 라이브러리
+- jsonwebtoken : JWT 토큰을 만들기 위해 사용
+- bcrypt : 유저 비밀번호 단뱡향 해싱을 위한 라이브러리
+- sanitize-html : HTML 필터링 위한 라이브러리
+- mongoose : MongoDB 기반 ODM 라이브러리
+- dotenv : 환경변수들을 파일에 넣고 사용할 수 있게 해주는 개발 도구 
+- koa-static : 정적인 파일들을 처리해주는 미들웨어 
+- joi : 스키마 필드 검증을 위한 라이브러리
 
 ### 프론트엔드
 
